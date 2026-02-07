@@ -1,0 +1,5 @@
+transaction_id,customer_name,email,product_name,category,quantity,sale_date,raw_price
+T001,Alice Johnson,alice@email.com,Laptop,Electronics,1,2025-10-10,999.99
+T002,Bob Smith,bob@email.com,Mouse,Electronics,3,2025-10-12,29.99
+T003,Carol Davis,carol@email.com,Book,Literature,2,2025-10-14,19.99
+T004,Alice Johnson,alice@email.com,Laptop,Electronics,1,2025-10-15,999.99
