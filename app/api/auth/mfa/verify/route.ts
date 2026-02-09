@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { sql } from '@/lib/db';
+import * as speakeasy from 'speakeasy';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { email, token } = await request.json();
+
+    if (!email || !token) {
+      return NextResponse.json(
+        { success: false, error: 'Email and token required' },
+        { status: 400 }
+      );
+    }
+
+    // Get user with MFA secret
+    const users = await sql`
+      SELECT id, mfa_secret, mfa_enabled FROM users WHERE email = ${email}
+    `;
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const user = users[0];
+
+    if (!user.mfa_enabled || !user.mfa_secret) {
+      return NextResponse.json(
+        { success: false, error: 'MFA not enabled' },
+        { status: 400 }
+      );
+    }
+
+    // Verify MFA token
+    const verified = speakeasy.totp.verify({
+      secret: user.mfa_secret,
+      encoding: 'base32',
+      token: token,
+      window: 2
+    });
+
+    if (!verified) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid MFA token' },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: email
+      }
+    });
+  } catch (error) {
+    console.error('MFA verify error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to verify MFA' },
+      { status: 500 }
+    );
+  }
+}

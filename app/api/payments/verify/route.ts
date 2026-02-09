@@ -50,6 +50,20 @@ export async function POST(request: NextRequest) {
         'UPDATE sales SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
         ['completed', payment.sale_id]
       );
+
+      // Send payment success email
+      const { sendPaymentNotification } = await import('@/lib/email');
+      const customerEmail = payment.customer_email || 'customer@example.com'; // Get from customer table
+      await sendPaymentNotification(
+        customerEmail,
+        'Payment Successful - Naashon Data Warehouse',
+        {
+          transaction_id: transaction_id,
+          amount: `$${payment.amount}`,
+          status: 'completed',
+          provider: payment.provider,
+        }
+      );
     }
 
     // Log the verification
