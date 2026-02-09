@@ -16,11 +16,6 @@
   "env": {
     "DATABASE_URL": "@naashon_kuteesa_database_url"
   },
-  "regions": [
-    "iad1",
-    "sfo1",
-    "lhr1",
-    "fra1"
-  ]
+
 }
 
