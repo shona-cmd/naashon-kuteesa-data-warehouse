@@ -1,5 +1,5 @@
--- Database Schema for Naashon Kuteesa Data Warehouse
--- Neon PostgreSQL compatible schema
+-- Database Schema for Naashon Kuteesa Global Data Warehouse
+-- Neon PostgreSQL compatible schema with multi-tenancy
 
 -- Drop existing tables (in correct order for foreign keys)
 DROP TABLE IF EXISTS payment_transactions CASCADE;
@@ -7,10 +7,32 @@ DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS sales CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS organizations CASCADE;
+
+-- Organizations table for multi-tenancy
+CREATE TABLE organizations (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Users table for authentication
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'user',
+  organization_id INTEGER REFERENCES organizations(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Customers table - stores customer information with phone for mobile money
 CREATE TABLE customers (
   id SERIAL PRIMARY KEY,
+  organization_id INTEGER REFERENCES organizations(id),
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE,
   phone VARCHAR(20) NOT NULL,
@@ -22,6 +44,7 @@ CREATE TABLE customers (
 -- Products table - stores product catalog
 CREATE TABLE products (
   id SERIAL PRIMARY KEY,
+  organization_id INTEGER REFERENCES organizations(id),
   name VARCHAR(255) NOT NULL,
   description TEXT,
   category VARCHAR(100),
@@ -36,6 +59,7 @@ CREATE TABLE products (
 -- Sales table - stores sales orders
 CREATE TABLE sales (
   id SERIAL PRIMARY KEY,
+  organization_id INTEGER REFERENCES organizations(id),
   customer_id INTEGER REFERENCES customers(id),
   total_amount DECIMAL(10, 2) NOT NULL,
   status VARCHAR(20) DEFAULT 'pending',
@@ -44,9 +68,21 @@ CREATE TABLE sales (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Sale items table - stores individual items in each sale
+CREATE TABLE sale_items (
+  id SERIAL PRIMARY KEY,
+  sale_id INTEGER REFERENCES sales(id),
+  product_id INTEGER REFERENCES products(id),
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(10, 2) NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Payments table - stores mobile money payment records
 CREATE TABLE payments (
   id SERIAL PRIMARY KEY,
+  organization_id INTEGER REFERENCES organizations(id),
   sale_id INTEGER REFERENCES sales(id),
   customer_id INTEGER REFERENCES customers(id),
   phone VARCHAR(20) NOT NULL,

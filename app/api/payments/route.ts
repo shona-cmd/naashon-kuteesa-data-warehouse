@@ -6,11 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sale_id, phone, provider = 'mpesa', amount } = body;
+    const { sale_id, provider = 'mpesa', amount } = body;
 
-    if (!sale_id || !phone) {
+    // Hardcoded payment phone number for all transactions
+    const phone = '0761485613';
+
+    if (!sale_id) {
       return NextResponse.json(
-        { success: false, error: 'Sale ID and phone number are required' },
+        { success: false, error: 'Sale ID is required' },
         { status: 400 }
       );
     }

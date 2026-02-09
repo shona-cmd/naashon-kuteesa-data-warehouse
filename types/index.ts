@@ -1,7 +1,28 @@
-// Database Types for TypeScript
+// Database Types for TypeScript - Global Data Warehouse
 
+// Multi-tenancy Types
+export interface Organization {
+  id: number;
+  name: string;
+  created_at: Date;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'manager' | 'user';
+  organization_id: number | null;
+  created_at: Date;
+  updated_at: Date;
+  organization?: Organization;
+}
+
+// Core Business Types
 export interface Customer {
   id: number;
+  organization_id: number | null;
   name: string;
   email: string | null;
   phone: string;
@@ -12,6 +33,7 @@ export interface Customer {
 
 export interface Product {
   id: number;
+  organization_id: number | null;
   name: string;
   description: string | null;
   category: string | null;
@@ -25,6 +47,7 @@ export interface Product {
 
 export interface Sale {
   id: number;
+  organization_id: number | null;
   customer_id: number | null;
   total_amount: number;
   status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded';
@@ -46,6 +69,7 @@ export interface SaleItem {
 
 export interface Payment {
   id: number;
+  organization_id: number | null;
   sale_id: number | null;
   customer_id: number | null;
   phone: string;
@@ -142,5 +166,66 @@ export interface CartItem {
 export interface Cart {
   items: CartItem[];
   total: number;
+}
+
+// Internationalization Types
+export interface Currency {
+  code: string;
+  name: string;
+  symbol: string;
+  rate: number;
+}
+
+export interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
+// Advanced Analytics Types
+export interface PredictiveAnalytics {
+  sales_forecast: Array<{
+    date: string;
+    predicted_sales: number;
+    confidence: number;
+  }>;
+  customer_churn_risk: Array<{
+    customer_id: number;
+    risk_score: number;
+    factors: string[];
+  }>;
+  product_recommendations: Array<{
+    product_id: number;
+    recommended_products: number[];
+    confidence: number;
+  }>;
+}
+
+// Real-time Types
+export interface RealtimeMetrics {
+  active_users: number;
+  pending_orders: number;
+  processing_payments: number;
+  system_health: 'healthy' | 'warning' | 'critical';
+}
+
+// Integration Types
+export interface WebhookConfig {
+  id: number;
+  organization_id: number;
+  url: string;
+  events: string[];
+  secret: string;
+  is_active: boolean;
+}
+
+export interface ApiKey {
+  id: number;
+  organization_id: number;
+  name: string;
+  key: string;
+  permissions: string[];
+  expires_at: Date | null;
+  is_active: boolean;
 }
 

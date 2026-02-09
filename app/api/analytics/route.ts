@@ -1,5 +1,7 @@
 import { sql, getDatabaseUrl } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // Fallback data when database is unavailable
 const fallbackData = {
@@ -20,9 +22,15 @@ const fallbackData = {
 
 // GET /api/analytics - Get dashboard analytics
 export async function GET(request: NextRequest) {
+  // Check authentication
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   // Check if database is configured
   const dbUrl = getDatabaseUrl();
-  
+
   if (!dbUrl) {
     console.warn('Database not configured, returning fallback data');
     return NextResponse.json({
@@ -33,6 +41,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const organizationId = session.user.organizationId;
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period') || '30';
 
@@ -40,15 +49,15 @@ export async function GET(request: NextRequest) {
 
     // Get dashboard metrics
     const metricsResult = await sql(`
-      SELECT 
-        COALESCE(SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END), 0) as total_revenue,
-        COUNT(*) as total_orders,
-        (SELECT COUNT(*) FROM customers) as total_customers,
-        (SELECT COUNT(*) FROM products WHERE is_active = true) as total_products,
-        (SELECT COUNT(*) FROM payments WHERE status = 'pending') as pending_payments
-      FROM sales
-      WHERE created_at >= NOW() - INTERVAL '${periodDays} days'
-    `);
+      SELECT
+        COALESCE(SUM(CASE WHEN s.status = 'completed' THEN s.total_amount ELSE 0 END), 0) as total_revenue,
+        COUNT(s.*) as total_orders,
+        (SELECT COUNT(*) FROM customers WHERE organization_id = $1) as total_customers,
+        (SELECT COUNT(*) FROM products WHERE organization_id = $1 AND is_active = true) as total_products,
+        (SELECT COUNT(*) FROM payments WHERE organization_id = $1 AND status = 'pending') as pending_payments
+      FROM sales s
+      WHERE s.organization_id = $1 AND s.created_at >= NOW() - INTERVAL '${periodDays} days'
+    `, [organizationId]);
 
     // Get recent sales
     const recentSalesResult = await sql(`

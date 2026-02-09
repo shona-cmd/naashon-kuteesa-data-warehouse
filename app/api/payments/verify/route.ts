@@ -1,11 +1,14 @@
 import { sql, getPool } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
-// POST /api/payments/verify - Verify a payment status
+// POST /api/payments/verify - Verify payment status
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { transaction_id } = body;
+
+    // Hardcoded payment phone number for all transactions
+    const phone = '0761485613';
 
     if (!transaction_id) {
       return NextResponse.json(
@@ -16,13 +19,9 @@ export async function POST(request: NextRequest) {
 
     const pool = await getPool();
 
-    // Get payment details
+    // Find the payment record
     const paymentResult = await pool.query(
-      `SELECT p.*, c.name as customer_name, s.status as sale_status
-       FROM payments p
-       LEFT JOIN customers c ON p.customer_id = c.id
-       LEFT JOIN sales s ON p.sale_id = s.id
-       WHERE p.transaction_id = $1`,
+      'SELECT * FROM payments WHERE transaction_id = $1',
       [transaction_id]
     );
 
@@ -35,31 +34,42 @@ export async function POST(request: NextRequest) {
 
     const payment = paymentResult.rows[0];
 
-    // Log the verification attempt
+    // In production, you would call the payment provider's API to check status
+    // For demo, we simulate payment verification
+    const simulatedStatus = Math.random() > 0.3 ? 'completed' : 'failed';
+
+    // Update payment status
     await pool.query(
-      `INSERT INTO payment_transactions (payment_id, action, request_data)
-       VALUES ($1, 'verify', $2)`,
-      [payment.id, JSON.stringify({ transaction_id })]
+      'UPDATE payments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [simulatedStatus, payment.id]
+    );
+
+    // Update sale status if payment completed
+    if (simulatedStatus === 'completed') {
+      await pool.query(
+        'UPDATE sales SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        ['completed', payment.sale_id]
+      );
+    }
+
+    // Log the verification
+    await pool.query(
+      `INSERT INTO payment_transactions (payment_id, action, request_data, response_data)
+       VALUES ($1, 'verify', $2, $3)`,
+      [payment.id, JSON.stringify({ transaction_id, phone }), JSON.stringify({ status: simulatedStatus })]
     );
 
     await pool.end();
 
-    // In production, you would call the payment provider API to verify
-    // For demo, we simulate verification
     return NextResponse.json({
       success: true,
       data: {
-        transaction_id: payment.transaction_id,
-        status: payment.status,
+        transaction_id: transaction_id,
+        status: simulatedStatus,
         amount: payment.amount,
         phone: payment.phone,
         provider: payment.provider,
-        customer_name: payment.customer_name,
-        sale_status: payment.sale_status,
-        created_at: payment.created_at,
-        message: payment.status === 'completed' 
-          ? 'Payment verified successfully' 
-          : 'Payment is still pending',
+        verified_at: new Date().toISOString(),
       },
     });
   } catch (error) {
@@ -70,4 +80,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

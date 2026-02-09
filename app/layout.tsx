@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -6,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Naashon Kuteesa Data Warehouse',
-  description: 'E-commerce analytics dashboard with mobile money payments',
+  title: 'Global Data Warehouse - Enterprise Analytics',
+  description: 'World-class enterprise data warehouse with multi-tenancy, global payments, and advanced analytics',
 };
 
 export default function RootLayout({
@@ -25,5 +24,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-

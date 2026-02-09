@@ -22,6 +22,9 @@ export default function Footer() {
               <p className="text-gray-400 text-xs">
                 💰 Mobile Money Payments • 📊 Sales Analytics • 🚀 Vercel Serverless
               </p>
+              <p className="text-gray-500 text-xs mt-2">
+                💬 Need suggestions? WhatsApp: +256 761 485 613
+              </p>
             </div>
           </div>
         ) : (
@@ -37,6 +40,9 @@ export default function Footer() {
             <div className="text-center">
               <p className="text-gray-400 text-xs">
                 💰 Mobile Money Payments • 📊 Sales Analytics • 🚀 Vercel Serverless
+              </p>
+              <p className="text-gray-500 text-xs mt-2">
+                💬 Need suggestions? WhatsApp: +256 761 485 613
               </p>
             </div>
             <div className="text-center md:text-right">

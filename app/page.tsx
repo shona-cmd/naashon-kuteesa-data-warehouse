@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   LineChart,
@@ -63,6 +65,8 @@ interface PaymentStatus {
 const COLORS = ['#22c55e', '#eab308', '#ef4444', '#3b82f6', '#8b5cf6'];
 
 export default function Dashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [topCustomers, setTopCustomers] = useState<CustomerSales[]>([]);
@@ -72,8 +76,16 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'sales' | 'customers' | 'products'>('overview');
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (session) {
+      fetchDashboardData();
+    }
+  }, [session]);
 
   const fetchDashboardData = async () => {
     try {
@@ -136,7 +148,7 @@ export default function Dashboard() {
     return statusColors[status] || 'badge-info';
   };
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -147,12 +159,37 @@ export default function Dashboard() {
     );
   }
 
+  if (status === 'unauthenticated') {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header with User Info */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600 mt-1">
+              Welcome back, {session?.user?.name || 'User'}!
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-500">
+              Organization: {session?.user?.organizationId ? `Org #${session.user.organizationId}` : 'Personal'}
+            </span>
+            <button
+              onClick={() => signOut()}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+
         {/* Tab Navigation */}
         <div className="flex space-x-4 mb-8">
           {['overview', 'sales', 'customers', 'products'].map((tab) => (
