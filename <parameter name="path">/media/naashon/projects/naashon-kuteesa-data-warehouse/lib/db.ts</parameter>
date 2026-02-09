@@ -1,17 +1,10 @@
-import { neon } from '@neondatabase/serverless';
+<parameter name="content">import { neon } from '@neondatabase/serverless';
 
 const databaseUrl = process.env.DATABASE_URL;
 
-// Helper function to check if we're in a build/SSG context
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
-
-// Only throw error at runtime, not during build
+// Helper to check if database is configured
 export function getDatabaseUrl(): string | null {
   if (!databaseUrl) {
-    // Check if this is a Vercel deployment
-    if (process.env.VERCEL === '1') {
-      console.warn('DATABASE_URL is not set. Database features will be disabled.');
-    }
     return null;
   }
   return databaseUrl;
@@ -24,15 +17,23 @@ export function getSqlClient() {
   return neon(url);
 }
 
-// Export sql as a function that handles missing database gracefully
-export const sql = (strings: TemplateStringsArray, ...values: any[]) => {
+// Export sql as a tagged template function that handles missing database gracefully
+export function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
   const url = getDatabaseUrl();
   if (!url) {
     // Return a promise that resolves to empty array for graceful degradation
     return Promise.resolve([]);
   }
-  return neon(url)(strings, ...values);
-};
+  // Construct the query string
+  let query = '';
+  for (let i = 0; i < strings.length; i++) {
+    query += strings[i];
+    if (i < values.length) {
+      query += values[i];
+    }
+  }
+  return neon(url)(query);
+}
 
 export async function getPool() {
   const url = getDatabaseUrl();
@@ -57,4 +58,4 @@ export async function checkDatabaseConnection(): Promise<boolean> {
     return false;
   }
 }
-
+</parameter>

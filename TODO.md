@@ -1,142 +1,67 @@
-# Vercel Deployment Plan for Naashon Kuteesa Data Warehouse
+# Vercel Deployment Fixes - Task List
 
-## ✅ Project Status: COMPLETE
+## Overview
+Fix issues preventing the site from displaying properly on Vercel.
 
-A production-ready e-commerce data warehouse with mobile money payments, deployed on Vercel with Neon PostgreSQL.
+## Tasks Completed
 
-## 📁 Created Files (25+ files)
+### Phase 1: Critical Fixes ✅
+- [x] 1. Add missing `Link` import to `app/page.tsx` (dashboard crashes without it)
+- [x] 2. Add graceful error handling in `lib/db.ts` when DATABASE_URL is missing
+- [x] 3. Update `vercel.json` to allow multiple regions for better availability
 
-### Configuration Files
-- ✅ package.json - Next.js dependencies
-- ✅ tsconfig.json - TypeScript configuration
-- ✅ next.config.js - Next.js configuration
-- ✅ tailwind.config.js - Tailwind CSS configuration
-- ✅ postcss.config.js - PostCSS configuration
-- ✅ vercel.json - Vercel deployment configuration
-- ✅ .env.example - Environment variable template
+### Phase 2: Error Handling ✅
+- [x] 4. Create error boundary component `components/ErrorBoundary.tsx`
+- [x] 5. Create fallback UI component `components/FallbackUI.tsx`
+- [x] 6. Update analytics API to return fallback data on error
 
-### Database Layer
-- ✅ lib/db.ts - Database connection (Neon PostgreSQL)
-- ✅ lib/schema.sql - Complete PostgreSQL schema
-- ✅ lib/init-db.ts - Database initialization
-- ✅ types/index.ts - TypeScript interfaces
+### Phase 3: Environment Configuration ✅
+- [x] 7. Create `.env.example` with all required environment variables
 
-### API Endpoints (8 endpoints)
-- ✅ app/api/products/route.ts - Products CRUD
-- ✅ app/api/sales/route.ts - Sales management
-- ✅ app/api/sales/by-customer/route.ts - Customer sales
-- ✅ app/api/sales/trend/route.ts - Sales trend
-- ✅ app/api/payments/route.ts - Payment initiation
-- ✅ app/api/payments/verify/route.ts - Payment verification
-- ✅ app/api/etl/route.ts - ETL processing
-- ✅ app/api/analytics/route.ts - Dashboard analytics
+## Files Modified
 
-### Frontend Pages
-- ✅ app/page.tsx - Main dashboard with charts
-- ✅ app/products/page.tsx - Product catalog
-- ✅ app/checkout/page.tsx - Mobile money checkout
-- ✅ app/layout.tsx - Root layout
-- ✅ app/globals.css - Global styles
+1. **app/page.tsx** - Added missing `Link` import
+2. **lib/db.ts** - Added graceful degradation when DATABASE_URL is missing
+3. **vercel.json** - Added multiple regions (iad1, sfo1, lhr1, fra1)
+4. **components/ErrorBoundary.tsx** - New error boundary component
+5. **components/FallbackUI.tsx** - New fallback UI components
+6. **app/api/analytics/route.ts** - Returns fallback data when database unavailable
+7. **.env.example** - New environment variable template
 
-### Documentation
-- ✅ README.md - Complete deployment guide
+## Deployment Instructions
 
----
+### Vercel Dashboard Setup:
+1. Go to https://vercel.com
+2. Import this project from GitHub
+3. Add environment variable: `DATABASE_URL` with your Neon connection string
+4. Deploy!
 
-## 🚀 Deployment Steps
-
-### 1. Install Dependencies
+### Local Development:
 ```bash
-cd /media/naashon/projects/naashon-kuteesa-data-warehouse
+# Install dependencies
 npm install
-```
 
-### 2. Create Neon Database
-1. Go to https://neon.tech
-2. Create free account
-3. Create project: `naashon-kuteesa`
-4. Copy connection string
-
-### 3. Configure Environment
-```bash
+# Copy environment file
 cp .env.example .env.local
-# Edit .env.local and add DATABASE_URL
-```
 
-### 4. Initialize Database
-```bash
-curl -X POST http://localhost:3000/api/etl \
-  -H "Content-Type: application/json" \
-  -d '{"action": "initialize"}'
-```
+# Add your DATABASE_URL to .env.local
 
-### 5. Start Development Server
-```bash
+# Start development server
 npm run dev
 ```
-Open http://localhost:3000
 
-### 6. Deploy to Vercel
-```bash
-npx vercel
-```
+## Estimated Monthly Costs
 
----
+| Service | Free Tier | Notes |
+|---------|-----------|-------|
+| Vercel | ✅ | Serverless functions included |
+| Neon | ✅ | 10GB storage, 300 compute hours |
+| **Total** | **$0** | |
 
-## 💰 Estimated Monthly Costs
+## Next Steps
 
-| Service | Free Tier | Paid Plan |
-|---------|-----------|-----------|
-| Vercel | ✅ | $20/month (Pro) |
-| Neon | ✅ | $19/month (Pro) |
-| **Total** | **$0** | **~$39/month** |
-
----
-
-## 📞 M-Pesa Setup (Kenya)
-
-1. Register at https://developer.safaricom.co.ke
-2. Get Consumer Key & Secret
-3. Configure in environment variables
-4. Set webhook URL: `https://yourdomain.com/api/payments/webhook`
-
----
-
-## 🎯 Key Marketable Features
-
-1. **Mobile Money Integration** - M-Pesa, Airtel Money payments
-2. **Real-time Payment Verification** - Webhook-based
-3. **Sales Analytics Dashboard** - Revenue, trends, charts
-4. **Product Catalog** - With images and stock tracking
-5. **ETL Pipeline** - Process CSV sales data
-6. **Customer Insights** - Purchase history tracking
-7. **Receipt Generation** - Transaction records
-8. **Serverless Architecture** - Auto-scaling on Vercel
-
----
-
-## 📊 Database Schema
-
-```sql
--- products, customers, sales, payments tables
--- With indexes for performance
--- Sample data included
-```
-
-## 🔗 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| /api/analytics | GET | Dashboard metrics |
-| /api/products | GET/POST | Products CRUD |
-| /api/sales | GET/POST | Sales management |
-| /api/sales/by-customer | GET | Customer summary |
-| /api/sales/trend | GET | Daily trend |
-| /api/payments | GET/POST | Payment init |
-| /api/payments/verify | POST | Payment verify |
-| /api/etl | GET/POST | ETL operations |
-
----
-
-Built for the African market with ❤️
+- [ ] Deploy to Vercel and verify the site loads
+- [ ] Initialize database by visiting `/api/etl?action=initialize`
+- [ ] Test all API endpoints
+- [ ] Configure custom domain (optional)
 
